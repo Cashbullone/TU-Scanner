@@ -123,6 +123,7 @@ a{color:var(--ok)}
 <p><b>Stop und Zukauf:</b> Der Stop liegt 2 N unter dem Einstieg (Short: darüber). Steigt der Kurs um ½ N über den letzten Kaufkurs, kommt eine weitere Einheit dazu, bis zu vier. Nach jedem Zukauf rücken alle Stops auf 2 N unter den neuen Kaufkurs. Verkauft wird, sobald der Kurs den Stop oder die Ausstiegsmarke (10 oder 20 Tage) berührt, je nachdem, welche höher liegt (Short: tiefer).</p>
 <p><b>Limits:</b> höchstens 4 Einheiten je Markt, 6 in eng verwandten, 10 in lose verwandten Märkten und 12 in einer Richtung.</p>
 <h3>Was die App daraus für Aktien macht</h3>
+<p><b>EUR-Werte:</b> Alle Kurse, Marken und Stops stehen in USD und daneben in EUR. Die EUR-Zahl ist die USD-Zahl geteilt durch den Wechselkurs aus den Kursdaten (steht unter „Einstellungen“ als Rückfall, falls die Daten keinen enthalten). Ein Handelsplatz in Euro wie gettex stellt eigene EUR-Kurse, die leicht abweichen können.</p>
 <p>Berechnet wird mit Tagesdaten. Ein Ausbruch gilt, wenn das Tageshoch (Short: Tagestief) die Marke der Vortage übersteigt. Wir nehmen an, dass eine Kauf-Stop-Order genau an der Marke gefüllt wird, bei einer Kurslücke über die Marke zum Eröffnungskurs. In der Wirklichkeit weichen Füllkurse davon ab. Die Marken für morgen schließen den heutigen Tag ein. Der Orderzettel zeigt deshalb für jede Aktie die Marke, an der du heute Abend eine Stop-Order für morgen setzt.</p>
 <p><b>Skip-Regel:</b> Das Skript spielt für jede Aktie über etwa zwei Jahre alle System-1-Trades als Einheit mit 2-N-Stop und 10-Tage-Ausstieg durch, auch die, die du nicht gehandelt hast. Ein Trade ist ein Gewinner, wenn der Ausstiegskurs über dem Einstiegskurs liegt. Zukäufe, die in deiner echten Position den Stop nachgezogen haben, bildet die Rechnung nicht ab. Beginn der Rechnung ist der Anfang der Kursreihe, ein erster Trade kann deshalb vom echten Verlauf abweichen. Danach gleicht sich der Zustand an.</p>
 <p><b>Depot:</b> Die App spielt jede eingetragene Position Tag für Tag nach. Der Stop gilt ab dem Tag nach jedem Kauf bei Kaufkurs ∓ 2 N, wobei N der Wert vom Vortag des Kaufs ist. Berührt ein Tief (Short: Hoch) die höhere (Short: tiefere) Marke aus Stop und Ausstiegskanal, meldet die App „Ausstieg ausgelöst“. Die Kursreihe umfasst etwa 140 Handelstage. Bei älteren Positionen prüft die App nur diesen Zeitraum.</p>
@@ -144,7 +145,8 @@ const save=()=>{try{localStorage.setItem(K,JSON.stringify({cfg:S.cfg,pos:S.pos,i
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const fd=(n,d)=>Number(n).toLocaleString('de-DE',{minimumFractionDigits:d,maximumFractionDigits:d});
 const f2=n=>fd(n,2),f1=n=>fd(n,1),f0=n=>fd(n,0);
-const px=n=>f2(n)+' $';
+const eur2=n=>f2(n/fxr())+' €';
+const px=n=>f2(n)+' $ / '+eur2(n);
 const dDE=u=>new Date(u*864e5).toLocaleDateString('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});
 const SECDE={'Communication Services':'Kommunikation','Consumer Discretionary':'Zyklischer Konsum','Consumer Staples':'Basiskonsum','Energy':'Energie','Financials':'Finanzen','Health Care':'Gesundheit','Industrials':'Industrie','Information Technology':'Technologie','Materials':'Rohstoffe','Real Estate':'Immobilien','Utilities':'Versorger'};
 const secName=k=>k?(SECDE[k]||k):'Sektor unbekannt';
@@ -319,7 +321,7 @@ function rSheet(plan){
   const box=$('#sheet');
   if(!D){box.innerHTML='<p class="mut">Ohne Kursdaten gibt es keinen Orderzettel.</p>';return}
   if(eqFull()<=0)return void(box.innerHTML='<p class="note w">Trage unter „Einstellungen“ deinen Depotwert ein, damit die App Stückzahlen rechnen kann.</p>');
-  let h='<p class="mut small" style="margin:0 0 8px">Stop-Orders, die du heute Abend für den nächsten Börsentag setzt. Reihenfolge: Verkäufe, Zukäufe, neue Einstiege nach Nähe zur Marke. Ein Einstieg ist nur dabei, wenn Limits und Depot ihn zulassen.</p>';
+  let h='<p class="mut small" style="margin:0 0 8px">Stop-Orders, die du heute Abend für den nächsten Börsentag setzt. Reihenfolge: Verkäufe, Zukäufe, neue Einstiege nach Nähe zur Marke. Ein Einstieg ist nur dabei, wenn Limits und Depot ihn zulassen. Marken und Kurse stehen in USD und in EUR (1 € = '+fd(fxr(),4)+' $). Auf gettex weicht der EUR-Kurs der Aktie leicht davon ab, prüfe die Marke dort vor dem Setzen der Order.</p>';
   if(!plan.rows.length)h+='<p>Heute Abend ist keine Order nötig. Keine Aktie liegt innerhalb von '+f1(S.cfg.near)+' N unter ihrer Einstiegsmarke, oder alle sind durch Limits gesperrt.</p>';
   else{
     h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Marke</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
