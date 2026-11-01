@@ -328,7 +328,7 @@ function rSheet(plan){
   let h='<p class="mut small" style="margin:0 0 8px">Stop-Orders, die du heute Abend für den nächsten Börsentag setzt. Reihenfolge: Verkäufe, Zukäufe, neue Einstiege nach Nähe zur Marke. Ein Einstieg ist nur dabei, wenn Limits und Depot ihn zulassen. Marken und Kurse stehen in USD, darunter in EUR (1 € = '+fd(fxr(),4)+' $). Auf gettex weicht der EUR-Kurs der Aktie leicht davon ab, prüfe die Marke dort vor dem Setzen der Order.</p>';
   if(!plan.rows.length)h+='<p>Heute Abend ist keine Order nötig. Keine Aktie liegt innerhalb von '+f1(S.cfg.near)+' N unter ihrer Einstiegsmarke, oder alle sind durch Limits gesperrt.</p>';
   else{
-    h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Marke</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
+    h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Stop-Buy</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
     for(const r of plan.rows){
       const st=BY[r.t];
       h+='<tr><td>'+(r.k===0?'<span class="badge bad">'+esc(r.txt)+'</span>':esc(r.txt))+'</td><td><b>'+esc(r.t)+'</b>'+(st?nameOf(st)+'<br><span class="mut small">'+esc(secName(st.sec))+'</span>':'')+'</td><td class="r">'+(r.lvl==null?'–':'<span class="usd">'+f2(r.lvl)+' $</span><br><span class="eur">'+eur2(r.lvl)+'</span>')+'</td><td class="r">'+f0(r.q)+'</td><td class="small">'+(()=>{const [u,e]=cur2(r.note);return esc(u)+(e!==u?'<br><span class="eur">'+esc(e)+'</span>':'')})()+'</td></tr>';
