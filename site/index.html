@@ -41,7 +41,7 @@ button.sm{padding:3px 10px;font-size:13px}
 table{width:100%;border-collapse:collapse;font-size:14px}
 th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);text-align:left;padding:4px 8px 6px 0;font-weight:600}
 td{padding:6px 8px 6px 0;border-top:1px solid var(--bd);vertical-align:top}
-td.r,th.r{text-align:right}
+td.r,th.r{text-align:right;white-space:nowrap}
 .tbl{overflow-x:auto}
 .ft td{padding:3px 8px 3px 0;border-top:0;font-size:13px}
 details{font-size:14px;color:var(--mut)}summary{cursor:pointer;color:var(--tx);font-weight:600}
@@ -51,8 +51,8 @@ details p{margin:8px 0}
 .chips label{display:flex;gap:6px;align-items:center;color:var(--tx)}
 .chips input{width:auto;margin:0}
 a{color:var(--ok)}
-.sheet,.sheet tbody{display:block}
 @media(max-width:640px){
+.sheet,.sheet tbody{display:block}
 .sheet thead{display:none}
 .sheet tr{display:grid;grid-template-columns:1fr auto auto;gap:2px 12px;padding:8px 0;border-top:1px solid var(--bd)}
 .sheet tr:first-child{border-top:0}
