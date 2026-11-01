@@ -42,6 +42,7 @@ table{width:100%;border-collapse:collapse;font-size:14px}
 th{font-size:12px;text-transform:uppercase;letter-spacing:.03em;color:var(--mut);text-align:left;padding:4px 8px 6px 0;font-weight:600}
 td{padding:6px 8px 6px 0;border-top:1px solid var(--bd);vertical-align:top}
 td.r,th.r{text-align:right;white-space:nowrap}
+.eur{color:var(--mut);font-weight:400}
 .tbl{overflow-x:auto}
 .ft td{padding:3px 8px 3px 0;border-top:0;font-size:13px}
 details{font-size:14px;color:var(--mut)}summary{cursor:pointer;color:var(--tx);font-weight:600}
@@ -147,6 +148,9 @@ const fd=(n,d)=>Number(n).toLocaleString('de-DE',{minimumFractionDigits:d,maximu
 const f2=n=>fd(n,2),f1=n=>fd(n,1),f0=n=>fd(n,0);
 const eur2=n=>f2(n/fxr())+' €';
 const px=n=>f2(n)+' $ / '+eur2(n);
+// Für den Orderzettel: USD oben, EUR darunter. pm() setzt Marker, cur2() zerlegt den Text in die USD- und die EUR-Fassung.
+const pm=n=>'\u0001'+f2(n)+' $\u0002'+eur2(n)+'\u0003';
+const cur2=t=>{const re=/\u0001(.*?)\u0002(.*?)\u0003/g;return [String(t).replace(re,'$1'),String(t).replace(re,'$2')]};
 const dDE=u=>new Date(u*864e5).toLocaleDateString('de-DE',{timeZone:'UTC',day:'2-digit',month:'2-digit',year:'numeric'});
 const SECDE={'Communication Services':'Kommunikation','Consumer Discretionary':'Zyklischer Konsum','Consumer Staples':'Basiskonsum','Energy':'Energie','Financials':'Finanzen','Health Care':'Gesundheit','Industrials':'Industrie','Information Technology':'Technologie','Materials':'Rohstoffe','Real Estate':'Immobilien','Utilities':'Versorger'};
 const secName=k=>k?(SECDE[k]||k):'Sektor unbekannt';
@@ -283,7 +287,7 @@ function planAll(cands){
   const H=cloneHold(HOLD),rows=[];
   for(const e of EV){
     if(e.err)continue;
-    if(e.exit)rows.push({k:0,t:e.pos.t,txt:'Verkaufen, Ausstieg ausgelöst',lvl:null,q:e.q,note:'Marke '+px(e.exit.lvl)+' am '+dDE(e.exit.date)+' berührt'});
+    if(e.exit)rows.push({k:0,t:e.pos.t,txt:'Verkaufen, Ausstieg ausgelöst',lvl:null,q:e.q,note:'Marke '+pm(e.exit.lvl)+' am '+dDE(e.exit.date)+' berührt'});
     else rows.push({k:1,t:e.pos.t,txt:(e.L?'Verkaufs-Stop':'Rückkauf-Stop'),lvl:e.sell,q:e.q,note:(e.sellWhy==='stop'?'2-N-Stop':'Ausstieg '+e.kOut+' Tage')+' (die '+(e.L?'höhere':'tiefere')+' Marke)'});
   }
   for(const e of EV){
@@ -291,13 +295,13 @@ function planAll(cands){
     if(e.units>=S.cfg.maxU){e.add={blocked:['Obergrenze von '+S.cfg.maxU+' Einheiten je Aktie erreicht']};continue}
     const msgs=limitMsgs(H,e.pos.t,e.d,e.st.sec),sz=sizeFor(H,e.st.N,e.addLvl,e.pos.t);
     e.add={msgs,sz,newStop:e.addLvl-e.d*S.cfg.stop*e.st.N};
-    if(!msgs.length&&sz.q>0){rows.push({k:2,t:e.pos.t,txt:e.L?'Zukauf (Kauf-Stop)':'Zukauf (Verkaufs-Stop)',lvl:e.addLvl,q:sz.q,note:'neuer Stop für alle Einheiten '+px(e.add.newStop)});addHold(H,e.pos.t,e.d,e.st.sec,1,sz.q*e.addLvl);e.add.ok=true}
+    if(!msgs.length&&sz.q>0){rows.push({k:2,t:e.pos.t,txt:e.L?'Zukauf (Kauf-Stop)':'Zukauf (Verkaufs-Stop)',lvl:e.addLvl,q:sz.q,note:'neuer Stop für alle Einheiten '+pm(e.add.newStop)});addHold(H,e.pos.t,e.d,e.st.sec,1,sz.q*e.addLvl);e.add.ok=true}
   }
   const rej=[];
   for(const c of cands){
     const {st,dir,pl}=c,msgs=limitMsgs(H,st.t,dir,st.sec),sz=sizeFor(H,st.N,pl.lvl,st.t);
     c.msgs=msgs;c.sz=sz;
-    if(!msgs.length&&sz.q>0){c.ok=true;rows.push({k:3,t:st.t,txt:(dir>0?'Einstieg (Kauf-Stop)':'Einstieg Short (Verkaufs-Stop)')+' S'+pl.sys,lvl:pl.lvl,q:sz.q,note:'Stop '+px(pl.stop)+' · Ausstieg '+px(pl.exitL)});addHold(H,st.t,dir,st.sec,1,sz.q*pl.lvl)}
+    if(!msgs.length&&sz.q>0){c.ok=true;rows.push({k:3,t:st.t,txt:(dir>0?'Einstieg (Kauf-Stop)':'Einstieg Short (Verkaufs-Stop)')+' S'+pl.sys,lvl:pl.lvl,q:sz.q,note:'Stop '+pm(pl.stop)+' · Ausstieg '+pm(pl.exitL)});addHold(H,st.t,dir,st.sec,1,sz.q*pl.lvl)}
     else rej.push(c);
   }
   rows.sort((a,b)=>a.k-b.k);
@@ -321,13 +325,13 @@ function rSheet(plan){
   const box=$('#sheet');
   if(!D){box.innerHTML='<p class="mut">Ohne Kursdaten gibt es keinen Orderzettel.</p>';return}
   if(eqFull()<=0)return void(box.innerHTML='<p class="note w">Trage unter „Einstellungen“ deinen Depotwert ein, damit die App Stückzahlen rechnen kann.</p>');
-  let h='<p class="mut small" style="margin:0 0 8px">Stop-Orders, die du heute Abend für den nächsten Börsentag setzt. Reihenfolge: Verkäufe, Zukäufe, neue Einstiege nach Nähe zur Marke. Ein Einstieg ist nur dabei, wenn Limits und Depot ihn zulassen. Marken und Kurse stehen in USD und in EUR (1 € = '+fd(fxr(),4)+' $). Auf gettex weicht der EUR-Kurs der Aktie leicht davon ab, prüfe die Marke dort vor dem Setzen der Order.</p>';
+  let h='<p class="mut small" style="margin:0 0 8px">Stop-Orders, die du heute Abend für den nächsten Börsentag setzt. Reihenfolge: Verkäufe, Zukäufe, neue Einstiege nach Nähe zur Marke. Ein Einstieg ist nur dabei, wenn Limits und Depot ihn zulassen. Marken und Kurse stehen in USD, darunter in EUR (1 € = '+fd(fxr(),4)+' $). Auf gettex weicht der EUR-Kurs der Aktie leicht davon ab, prüfe die Marke dort vor dem Setzen der Order.</p>';
   if(!plan.rows.length)h+='<p>Heute Abend ist keine Order nötig. Keine Aktie liegt innerhalb von '+f1(S.cfg.near)+' N unter ihrer Einstiegsmarke, oder alle sind durch Limits gesperrt.</p>';
   else{
     h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Marke</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
     for(const r of plan.rows){
       const st=BY[r.t];
-      h+='<tr><td>'+(r.k===0?'<span class="badge bad">'+esc(r.txt)+'</span>':esc(r.txt))+'</td><td><b>'+esc(r.t)+'</b>'+(st?nameOf(st)+'<br><span class="mut small">'+esc(secName(st.sec))+'</span>':'')+'</td><td class="r">'+(r.lvl==null?'–':px(r.lvl))+'</td><td class="r">'+f0(r.q)+'</td><td class="small">'+esc(r.note)+'</td></tr>';
+      h+='<tr><td>'+(r.k===0?'<span class="badge bad">'+esc(r.txt)+'</span>':esc(r.txt))+'</td><td><b>'+esc(r.t)+'</b>'+(st?nameOf(st)+'<br><span class="mut small">'+esc(secName(st.sec))+'</span>':'')+'</td><td class="r">'+(r.lvl==null?'–':'<span class="usd">'+f2(r.lvl)+' $</span><br><span class="eur">'+eur2(r.lvl)+'</span>')+'</td><td class="r">'+f0(r.q)+'</td><td class="small">'+(()=>{const [u,e]=cur2(r.note);return esc(u)+(e!==u?'<br><span class="eur">'+esc(e)+'</span>':'')})()+'</td></tr>';
     }
     h+='</tbody></table></div>';
   }
