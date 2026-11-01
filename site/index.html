@@ -325,7 +325,7 @@ function rSheet(plan){
     h+='<div class="tbl"><table class="sheet"><thead><tr><th>Aktion</th><th>Aktie</th><th class="r">Marke</th><th class="r">Stück</th><th>Hinweis</th></tr></thead><tbody>';
     for(const r of plan.rows){
       const st=BY[r.t];
-      h+='<tr><td>'+(r.k===0?'<span class="badge bad">'+esc(r.txt)+'</span>':esc(r.txt))+'</td><td><b>'+esc(r.t)+'</b>'+(st?' <span class="mut small">'+esc(secName(st.sec))+'</span>':'')+'</td><td class="r">'+(r.lvl==null?'–':px(r.lvl))+'</td><td class="r">'+f0(r.q)+'</td><td class="small">'+esc(r.note)+'</td></tr>';
+      h+='<tr><td>'+(r.k===0?'<span class="badge bad">'+esc(r.txt)+'</span>':esc(r.txt))+'</td><td><b>'+esc(r.t)+'</b>'+(st?nameOf(st)+'<br><span class="mut small">'+esc(secName(st.sec))+'</span>':'')+'</td><td class="r">'+(r.lvl==null?'–':px(r.lvl))+'</td><td class="r">'+f0(r.q)+'</td><td class="small">'+esc(r.note)+'</td></tr>';
     }
     h+='</tbody></table></div>';
   }
